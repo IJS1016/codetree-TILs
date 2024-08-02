@@ -1,10 +1,10 @@
 K, N = map(int, input().split())
 
-def choose(n) :
-    if len(n) == 2:
-        print(" ".join(map(str, n)))
+def choose(l) :
+    if len(l) == N:
+        print(" ".join(map(str, l)))
         return
     for i in range(1, K+1) :
-        choose(n + [i])
+        choose(l + [i])
 
 choose([])
