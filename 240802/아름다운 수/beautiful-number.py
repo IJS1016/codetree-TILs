@@ -5,15 +5,28 @@ N = int(input())
 result = 0
 
 def make_num(n_str) :
+    global result
     if len(n_str) == N :
-        for j in range(1, 5) :
-            part = str(j) * j
-            while part in n_str :
-                n_str = n_str.replace(part, '')
-        if len(n_str) == 0 :
+        # print("NUM")
+        # print(n_str)
+        i = 0
+        while (i < len(n_str)) :
+            s = n_str[i]
+            si = int(s)
+            if i+si <= N and n_str[i:i+si] == s * int(s) :
+                # print("CHECK")
+                # print( i+si < N, n_str[i:i+si] == s * int(s) )
+                # print(i, i+si)
+                i += si
+            else :
+                # print("BREAK")
+                break
+        if i == N :
+            # print("ADD RESULT")
             result += 1
         return
     for i in range(1, 5) :
         make_num(n_str + str(i))
 
 make_num('')
+print(result)
