@@ -1,7 +1,7 @@
 import sys
 # sys.stdin = open(r"C:\Users\정선\Desktop\코테\example1.txt", "r")
 # sys.stdin = open(r"C:\Users\정선\Desktop\코테\example2.txt", "r")
-sys.stdin = open(r"C:\Users\정선\Desktop\코테\example3.txt", "r")
+# sys.stdin = open(r"C:\Users\정선\Desktop\코테\example3.txt", "r")
 
 N, M, C = map(int, input().split())
 mmap = []
@@ -58,5 +58,3 @@ diff_line_maximum = sum(sorted(line_maximums)[-2:])
 if maximum < diff_line_maximum :
     maximum = diff_line_maximum
 print(maximum)
-
-# 148
