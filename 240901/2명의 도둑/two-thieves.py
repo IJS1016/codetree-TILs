@@ -36,7 +36,7 @@ for y, line in enumerate(mmap) :
         get_value(line[sp:sp+M])
         tmp = tmp_maximum
         second_maximum = 0
-        for ssp in range(sp+M, N-M) :
+        for ssp in range(sp+M, N-M+1) :  
             tmp_maximum = 0
             get_value(line[ssp:ssp+M])
             second_tmp = tmp_maximum
@@ -58,3 +58,5 @@ diff_line_maximum = sum(sorted(line_maximums)[-2:])
 if maximum < diff_line_maximum :
     maximum = diff_line_maximum
 print(maximum)
+
+# 148
