@@ -1,6 +1,7 @@
-# import sys
+import sys
 # sys.stdin = open(r"C:\Users\정선\Desktop\코테\example1.txt", "r")
 # sys.stdin = open(r"C:\Users\정선\Desktop\코테\example2.txt", "r")
+sys.stdin = open(r"C:\Users\정선\Desktop\코테\example3.txt", "r")
 
 N, M, C = map(int, input().split())
 mmap = []
@@ -30,7 +31,7 @@ maximum = 0
 line_maximums = []
 for y, line in enumerate(mmap) :
     line_maximum = 0
-    for sp in range(N-M) :
+    for sp in range(N-M+1) :
         tmp_maximum = 0
         get_value(line[sp:sp+M])
         tmp = tmp_maximum
@@ -41,7 +42,7 @@ for y, line in enumerate(mmap) :
             second_tmp = tmp_maximum
             if second_tmp > second_maximum :
                 second_maximum = second_tmp
-
+        
         line_total = tmp + second_maximum 
         if line_total > maximum :
             maximum = line_total
@@ -57,3 +58,5 @@ diff_line_maximum = sum(sorted(line_maximums)[-2:])
 if maximum < diff_line_maximum :
     maximum = diff_line_maximum
 print(maximum)
+
+# 148
