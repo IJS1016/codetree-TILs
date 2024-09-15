@@ -127,16 +127,16 @@ def get_score() :
     max_angle_condition = 4
     best_mmap = copy.deepcopy(mmap)
     # 최대 점수 조건 저장하고 있기, (3) 회전 중심 좌표의 열이 가장 작은 구간을, 그리고 열이 같다면 행이 가장 작은 구간을 선택 충족
-    for y in range(1, MAP_SIZE-1) :
-        for x in range(1, MAP_SIZE-1) :
+    for x in range(1, MAP_SIZE-1) :
+        for y in range(1, MAP_SIZE-1) :
             rotated_mmap = copy.deepcopy(mmap)
             # print("ORIGINAL MMAP")
             # print_rotated_mmap(-10, -10, mmap)
             # print("ROTATED")
             for i in range(3) :
                 rotated_mmap = rotate(y, x, rotated_mmap)
-                if DBG :
-                    print_rotated_mmap(y, x, rotated_mmap)
+                # if DBG :
+                #     print_rotated_mmap(y, x, rotated_mmap)
                 score, history = find_treasure(rotated_mmap)
                 if DBG :
                     if len(history) != 0 :
