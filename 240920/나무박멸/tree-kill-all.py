@@ -1,164 +1,160 @@
-import sys
-# sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
+# 변수 선언 및 입력:
+n, m, k, c = tuple(map(int, input().split()))
+tree = [[0] * (n + 1)]
+for _ in range(n):
+    tree.append([0] + list(map(int, input().split())))
 
-# NxN 모두 돌지 않고, coord 저장해서 필요한거만 돌리도록 하기
-#  나눗셈이 존재한다, 0인 경우 반드시 생각해줘야 함
-# deepcopy 사용하지 말기 -> 시간 초과
-# sort lambda 사용하기
-# 디버깅할 때 침착하게 하기
-# 그래도 제출시간이 너무 느린데?
-# 해설보고 공부해보기
-N, M, K, C = map(int, input().split())
-mmap = []
-for _ in range(N) :
-    mmap.append(list(map(int, input().split())))
+add_tree = [
+    [0] * (n + 1)
+    for _ in range(n + 1)
+]
+herb = [
+    [0] * (n + 1)
+    for _ in range(n + 1)
+]
 
-# 방향 선언
-udlr_directions = [[-1, 0], [1, 0], [0, -1], [0, 1]]
-cross_line_directions = [[-1, -1], [-1, 1], [1, 1], [1, -1]]
+ans = 0
 
-def check_in_range(y, x) :
-    if 0 <= y < N and 0 <= x < N :
-        return True
-    return False
 
-def get_tree_coord() :
-    tree_coords = []
-    for y in range(N) :
-        for x in range(N) :
-            if mmap[y][x] > 0 :
-                tree_coords.append([y, x])
-    return tree_coords
-                
-# 1. 성장
-def grow_up_trees(tree_coords) :
-    # 인접한 네 개의 칸 중 나무가 있는 칸의 수만큼 나무가 성장합니다. 성장은 모든 나무에게 동시에 일어납니다.
-    # 나무 좌표만 수행하도록 수정
-    for (y, x) in tree_coords :
-        for (dy, dx) in udlr_directions :
-            ny = y + dy
-            nx = x + dx
-            if check_in_range(ny, nx) and [ny, nx] in tree_coords :
-                mmap[y][x] += 1
+def is_out_range(x, y):
+    return not (1 <= x and x <= n and 1 <= y and y <= n)
 
-def check_dead_space(y, x) :
-    for (dcy, dcx, c) in dead_coord :
-        if [y, x] == [dcy, dcx] :
-            return True
-    return False
 
-# 아 나머지가 0일때... 제외해줘야되는데... 그러지 않고 new_tree에는 있고 실제 심어지는 나무는 0이라서 제외가 되었군
-# 2. 번식
-def make_trees(tree_coords) :
-    # 기존에 있었던 나무들은 인접한 4개의 칸 중 벽, 다른 나무, 제초제 모두 없는 칸에 번식
-    # 동시에 해야되는게...
-    tmp_mmap = [[0 for _ in range(N)] for _ in range(N)]
-    new_tree_coords = []
-    for (y, x) in tree_coords :
-        avaliable_coordinates = []
-        for d in udlr_directions :
-            dy, dx = d
-            ny = y + dy
-            nx = x + dx
-            if check_in_range(ny, nx) and mmap[ny][nx] == 0 and not check_dead_space(ny, nx) : # 범위, 벽, 다른 나무, 제초제 모두 없는 칸에 번식
-                avaliable_coordinates.append([ny, nx])
-        if len(avaliable_coordinates) :
-            tree_num = int(mmap[y][x] / len(avaliable_coordinates))
-            
-        for ac in avaliable_coordinates :
-            ny, nx = ac
-            tmp_mmap[ny][nx] += tree_num
-            if [ny, nx] not in new_tree_coords and tree_num > 0:
-                new_tree_coords.append([ny, nx])
-            
-    # 번식한거 기존 mmap에 더해주기 
-    for (y, x) in new_tree_coords :
-        mmap[y][x] += tmp_mmap[y][x]
+# 1단계 : 인접한 네 개의 칸 중 나무가 있는 칸의 수만큼 나무가 성장합니다.
+def step_one():
+    dxs, dys = [-1, 0, 1, 0], [0, -1, 0, 1]
 
-    tree_coords.extend(new_tree_coords)
-    return tree_coords
+    for i in range(1, n + 1):
+        for j in range(1, n + 1):
+            if tree[i][j] <= 0: 
+                continue
 
-# 3. 제초제 살포
-def put_dead_medicine(tree_coords, dead_coord) :
-    # 3. 각 칸 중 제초제를 뿌렸을 때 나무가 가장 많이 박멸되는 칸에 제초제 -> 이것도 나무가 존재하는 위치에 해야되네..
-    # 모든 nxn 수행해서 가장 많이 죽는거 완탐
-    # 동일할 경우 행이 작은 순서대로, 만약 행이 같은 경우에는 열이 작은 칸에 제초제를 뿌리게 됩니다(y, x 순이 맞음)
-    maximum_dead_tree = 0
-    maximum_removed_tree_coord = []
-    maximum_dead_coord = []
+            # 나무가 있는 칸의 수(cnt)만큼 나무가 성장합니다.
+            cnt = 0
+            for dx, dy in zip(dxs, dys):
+                nx, ny = i + dx, j + dy
+                if is_out_range(nx, ny): 
+                    continue
+                if tree[nx][ny] > 0: 
+                    cnt += 1
 
-    tree_coords.sort(key = lambda x : (x[0], x[1]))
+            tree[i][j] += cnt
 
-    for (y, x) in tree_coords :
-        # before_dead_coord = copy.deepcopy(dead_coord) # copy 많은 시간...
-        num_dead_tree, removed_tree_coord, tmp_dead_coord = count_dead_tree(y, x, dead_coord)
-        if num_dead_tree > maximum_dead_tree :
-            maximum_dead_tree = num_dead_tree
-            maximum_removed_tree_coord = removed_tree_coord
-            maximum_dead_coord = tmp_dead_coord
 
-    for (ry, rx) in maximum_removed_tree_coord :
-        mmap[ry][rx] = 0
+# 2단계 : 기존에 있었던 나무들은 아무것도 없는 칸에 번식을 진행합니다.
+def step_two():
+    dxs, dys = [-1, 0, 1, 0], [0, -1, 0, 1]
 
-    maximum_tree_coords = []
-    for tc in tree_coords :
-        if tc not in maximum_removed_tree_coord :
-            maximum_tree_coords.append(tc)
-        else :
-            rty, rtx = tc
-            mmap[rty][rtx] = 0
+    # 모든 나무에서 동시에 일어나는 것을 구현하기 위해 하나의 배열을 더 이용합니다.
+    # add_tree를 초기화해줍니다.
+    for i in range(1, n + 1):
+        for j in range(1, n + 1): 
+            add_tree[i][j] = 0
 
-    return maximum_dead_tree, maximum_tree_coords, maximum_dead_coord
+    for i in range(1, n + 1):
+        for j in range(1, n + 1):
+            if tree[i][j] <= 0: 
+                continue
 
-# C도 시간초과 줄이기 위해 1로 하지 말고, 연도로 해야함 => 별로 의미 없을거 같은데
-def count_dead_tree(y, x, dead_coord) :
-    result = 0
-    result += mmap[y][x]  
-    removed_tree_coord = [[y, x]]
-    add_dead_coord = [[y, x, C]]
+            # 해당 나무와 인접한 나무 중 아무도 없는 칸의 개수를 찾습니다.
+            cnt = 0
+            for dx, dy in zip(dxs, dys):
+                nx, ny = i + dx, j + dy
+                if is_out_range(nx, ny): 
+                    continue
+                if herb[nx][ny]: 
+                    continue
+                if tree[nx][ny] == 0: 
+                    cnt += 1
+
+            # 인접한 나무 중 아무도 없는 칸은 cnt로 나눠준 만큼 번식합니다.
+            for dx, dy in zip(dxs, dys):
+                nx, ny = i + dx, j + dy
+                if is_out_range(nx, ny): 
+                    continue
+                if herb[nx][ny]: 
+                    continue
+                if tree[nx][ny] == 0: 
+                    add_tree[nx][ny] += tree[i][j] // cnt
     
-    for d in cross_line_directions :
-        ny = y
-        nx = x
-        dy, dx = d
-        for _ in range(K) :
-            ny += dy
-            nx += dx
-            # break 조건들
-            # 범위 벗어난 경우, 벽 있거나
-            if not check_in_range(ny, nx) or mmap[ny][nx] == -1 :
-                break
-            # 나무 없는 경우
-            elif mmap[ny][nx] == 0 :
-                # 제초제 남겨두고 break
-                add_dead_coord.append([ny, nx, C])
-                break
-            # 계속 진행
-            result += mmap[ny][nx]
-            removed_tree_coord.append([ny, nx])
-            add_dead_coord.append([ny, nx, C])
-
-    return result, removed_tree_coord, dead_coord + add_dead_coord
-
-def pass_year_dead_medicine(dead_coord) :
-    new_dead_coord = []
-    for (y, x, c) in dead_coord :
-        if c > 1 :
-            new_dead_coord.append([y, x, c-1])
-    return new_dead_coord
+    # add_tree를 더해 번식을 동시에 진행시킵니다.
+    for i in range(1, n + 1):
+        for j in range(1, n + 1):
+            tree[i][j] += add_tree[i][j]
 
 
-result = 0
-dead_coord = []
+# 3단계 : 가장 많이 박멸되는 칸에 제초제를 뿌립니다.
+def step_three():
+    global ans
 
-tree_coords = get_tree_coord()
+    dxs, dys = [-1, 1, 1, -1], [-1, -1, 1, 1]
 
-for year in range(M) :
-    grow_up_trees(tree_coords)
-    tree_coords = make_trees(tree_coords)
-    dead_coord = pass_year_dead_medicine(dead_coord)
-    num_dead_tree, tree_coords, dead_coord = put_dead_medicine(tree_coords, dead_coord)
-    result += num_dead_tree
-    len_tree_coord2 = len(tree_coords)
+    max_del, max_x, max_y = 0, 1, 1
+    for i in range(1, n + 1):
+        for j in range(1, n + 1):
+            # 모든 칸에 대해 제초제를 뿌려봅니다. 각 칸에서 제초제를 뿌릴 시 박멸되는 나무의 그루 수를 계산하고,
+            # 이 값이 최대가 되는 지점을 찾아줍니다.
+            if tree[i][j] <= 0: 
+                continue
 
-print(result)
+            cnt = tree[i][j]
+            for dx, dy in zip(dxs, dys):
+                nx, ny = i, j
+                for _ in range(k):
+                    nx, ny = nx + dx, ny + dy
+                    if is_out_range(nx, ny): 
+                        break
+                    if tree[nx][ny] <= 0: 
+                        break
+                    cnt += tree[nx][ny]
+
+            if max_del < cnt:
+                max_del = cnt
+                max_x = i
+                max_y = j
+
+    ans += max_del
+
+    # 찾은 칸에 제초제를 뿌립니다.
+    if tree[max_x][max_y] > 0:
+        tree[max_x][max_y] = 0
+        herb[max_x][max_y] = c
+
+        for dx, dy in zip(dxs, dys):
+            nx, ny = max_x, max_y
+            for _ in range(k):
+                nx, ny = nx + dx, ny + dy
+                if is_out_range(nx, ny): 
+                    break
+                if tree[nx][ny] < 0: 
+                    break
+                if tree[nx][ny] == 0:
+                    herb[nx][ny] = c
+                    break
+
+                tree[nx][ny] = 0
+                herb[nx][ny] = c
+
+
+# 제초제의 기간을 1년 감소시킵니다.
+def delete_herb():
+    for i in range(1, n + 1):
+        for j in range(1, n + 1): 
+            if herb[i][j] > 0: 
+                herb[i][j] -= 1
+
+
+for _ in range(m):
+    # 1단계 : 인접한 네 개의 칸 중 나무가 있는 칸의 수만큼 나무가 성장합니다.
+    step_one()
+
+    # 2단계 : 기존에 있었던 나무들은 아무것도 없는 칸에 번식을 진행합니다.
+    step_two()
+
+    # 제초제의 기간을 1년 감소시킵니다.
+    delete_herb()
+
+    # 3단계 : 가장 많이 박멸되는 칸에 제초제를 뿌립니다.
+    step_three()
+
+print(ans)
