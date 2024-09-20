@@ -1,4 +1,3 @@
-import copy
 import sys
 # sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
 
@@ -7,20 +6,8 @@ import sys
 # deepcopy 사용하지 말기 -> 시간 초과
 # sort lambda 사용하기
 # 디버깅할 때 침착하게 하기
-import time
-import functools
-
-def measure_time(func):
-    @functools.wraps(func)
-    def wrapper_measure_time(*args, **kwargs):
-        start_time = time.time()  # 시작 시간 기록
-        result = func(*args, **kwargs)  # 원래 함수 실행
-        end_time = time.time()    # 끝난 시간 기록
-        elapsed_time = end_time - start_time  # 소요 시간 계산
-        print(f"Function '{func.__name__}' 실행 시간: {elapsed_time:.6f}초")
-        return result
-    return wrapper_measure_time
-
+# 그래도 제출시간이 너무 느린데?
+# 해설보고 공부해보기
 N, M, K, C = map(int, input().split())
 mmap = []
 for _ in range(N) :
@@ -44,7 +31,6 @@ def get_tree_coord() :
     return tree_coords
                 
 # 1. 성장
-# @measure_time
 def grow_up_trees(tree_coords) :
     # 인접한 네 개의 칸 중 나무가 있는 칸의 수만큼 나무가 성장합니다. 성장은 모든 나무에게 동시에 일어납니다.
     # 나무 좌표만 수행하도록 수정
@@ -63,7 +49,6 @@ def check_dead_space(y, x) :
 
 # 아 나머지가 0일때... 제외해줘야되는데... 그러지 않고 new_tree에는 있고 실제 심어지는 나무는 0이라서 제외가 되었군
 # 2. 번식
-# @measure_time
 def make_trees(tree_coords) :
     # 기존에 있었던 나무들은 인접한 4개의 칸 중 벽, 다른 나무, 제초제 모두 없는 칸에 번식
     # 동시에 해야되는게...
@@ -94,7 +79,6 @@ def make_trees(tree_coords) :
     return tree_coords
 
 # 3. 제초제 살포
-# @measure_time
 def put_dead_medicine(tree_coords, dead_coord) :
     # 3. 각 칸 중 제초제를 뿌렸을 때 나무가 가장 많이 박멸되는 칸에 제초제 -> 이것도 나무가 존재하는 위치에 해야되네..
     # 모든 nxn 수행해서 가장 많이 죽는거 완탐
@@ -156,7 +140,6 @@ def count_dead_tree(y, x, dead_coord) :
 
     return result, removed_tree_coord, dead_coord + add_dead_coord
 
-# @measure_time
 def pass_year_dead_medicine(dead_coord) :
     new_dead_coord = []
     for (y, x, c) in dead_coord :
