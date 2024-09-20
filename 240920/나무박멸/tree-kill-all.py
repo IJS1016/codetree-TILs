@@ -1,42 +1,25 @@
-# 179
-
-# 17:01 문풀 시작
-# nxn 격자, 나무 그루 수, 벽 정보
-# 제초제 k 범위만큼 대각선으로 퍼짐, 벽이 있는 경우 가로막혀 전파되지 않음
-# 1. 인접한 네 개의 칸 중 나무가 있는 칸의 수만큼 나무가 성장합니다. 성장은 모든 나무에게 동시에 일어납니다.
-# 2. 기존에 있었던 나무들은 인접한 4개의 칸 중 벽, 다른 나무, 제초제 모두 없는 칸에 번식을 진행
-# 기존에 있었던 나무들은 인접한 4개의 칸 중 벽, 다른 나무, 제초제 모두 없는 칸에 번식을 진행합니다.
-# 이때 각 칸의 나무 그루 수에서 총 번식이 가능한 칸의 개수만큼 나누어진 그루 수만큼 번식이 되며, 나눌 때 생기는 나머지는 버립니다. 
-# 번식의 과정은 모든 나무에서 동시에 일어나게 됩니다.
-# 번식 시 겹치면 더해짐
-# 3. 각 칸 중 제초제를 뿌렸을 때 나무가 가장 많이 박멸되는 칸에 제초제
-# 나무 있는 칸 4개 대각선 방향, k칸 만큼 전파, 뿌려지고 C년까지 남아있음
-# 벽 있거나, 나무 없는 경우 그 칸까지 제초제 뿌려지고, 이후로 전파 X, C년까지 남아있다가 C+1년째에 사라짐
-# 새로 뿌려지면 다시 C년 동안 유지
-
-# 번식하고, 제초제 뿌릴 때 C년이 되면 제조체 사라짐
-
-# 입력 ########################################
-# 첫 번째 줄에 격자의 크기 n, 
-# 박멸이 진행되는 년 수 m, 
-# 제초제의 확산 범위 k, 
-# 제초제가 남아있는 년 수 c
-# 이후 n개의 줄에 걸쳐 각 칸의 나무의 그루 수, 벽의 정보가 주어집니다. 
-# 총 나무의 그루 수는 1 이상 100 이하의 수로, 빈 칸은 0, 벽은 -1으로 주어지게 됩니다.
-# 5 ≤ n ≤ 20
-# 1 ≤ m ≤ 1000
-# 1 ≤ k ≤ 20
-# 1 ≤ c ≤ 10
-
-# sort ladmba 사용법 숙지하기
-# 구현이라도 무식하게 mmap으로만 하지 말고 시간을 줄일 수 있는 방법 생각하기
 import copy
 import sys
-DBG = False
 # sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
-if DBG:
-    sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
 
+# NxN 모두 돌지 않고, coord 저장해서 필요한거만 돌리도록 하기
+#  나눗셈이 존재한다, 0인 경우 반드시 생각해줘야 함
+# deepcopy 사용하지 말기 -> 시간 초과
+# sort lambda 사용하기
+# 디버깅할 때 침착하게 하기
+import time
+import functools
+
+def measure_time(func):
+    @functools.wraps(func)
+    def wrapper_measure_time(*args, **kwargs):
+        start_time = time.time()  # 시작 시간 기록
+        result = func(*args, **kwargs)  # 원래 함수 실행
+        end_time = time.time()    # 끝난 시간 기록
+        elapsed_time = end_time - start_time  # 소요 시간 계산
+        print(f"Function '{func.__name__}' 실행 시간: {elapsed_time:.6f}초")
+        return result
+    return wrapper_measure_time
 
 N, M, K, C = map(int, input().split())
 mmap = []
@@ -61,6 +44,7 @@ def get_tree_coord() :
     return tree_coords
                 
 # 1. 성장
+# @measure_time
 def grow_up_trees(tree_coords) :
     # 인접한 네 개의 칸 중 나무가 있는 칸의 수만큼 나무가 성장합니다. 성장은 모든 나무에게 동시에 일어납니다.
     # 나무 좌표만 수행하도록 수정
@@ -79,6 +63,7 @@ def check_dead_space(y, x) :
 
 # 아 나머지가 0일때... 제외해줘야되는데... 그러지 않고 new_tree에는 있고 실제 심어지는 나무는 0이라서 제외가 되었군
 # 2. 번식
+# @measure_time
 def make_trees(tree_coords) :
     # 기존에 있었던 나무들은 인접한 4개의 칸 중 벽, 다른 나무, 제초제 모두 없는 칸에 번식
     # 동시에 해야되는게...
@@ -109,6 +94,7 @@ def make_trees(tree_coords) :
     return tree_coords
 
 # 3. 제초제 살포
+# @measure_time
 def put_dead_medicine(tree_coords, dead_coord) :
     # 3. 각 칸 중 제초제를 뿌렸을 때 나무가 가장 많이 박멸되는 칸에 제초제 -> 이것도 나무가 존재하는 위치에 해야되네..
     # 모든 nxn 수행해서 가장 많이 죽는거 완탐
@@ -120,8 +106,8 @@ def put_dead_medicine(tree_coords, dead_coord) :
     tree_coords.sort(key = lambda x : (x[0], x[1]))
 
     for (y, x) in tree_coords :
-        before_dead_coord = copy.deepcopy(dead_coord)
-        num_dead_tree, removed_tree_coord, tmp_dead_coord = count_dead_tree(y, x, before_dead_coord)
+        # before_dead_coord = copy.deepcopy(dead_coord) # copy 많은 시간...
+        num_dead_tree, removed_tree_coord, tmp_dead_coord = count_dead_tree(y, x, dead_coord)
         if num_dead_tree > maximum_dead_tree :
             maximum_dead_tree = num_dead_tree
             maximum_removed_tree_coord = removed_tree_coord
@@ -140,18 +126,18 @@ def put_dead_medicine(tree_coords, dead_coord) :
 
     return maximum_dead_tree, maximum_tree_coords, maximum_dead_coord
 
-# C도 시간초과 줄이기 위해 1로 하지 말고, 연도로 해도 됨
+# C도 시간초과 줄이기 위해 1로 하지 말고, 연도로 해야함 => 별로 의미 없을거 같은데
 def count_dead_tree(y, x, dead_coord) :
     result = 0
     result += mmap[y][x]  
     removed_tree_coord = [[y, x]]
-    dead_coord.append([y, x, C])
+    add_dead_coord = [[y, x, C]]
     
     for d in cross_line_directions :
         ny = y
         nx = x
         dy, dx = d
-        for size in range(K) :
+        for _ in range(K) :
             ny += dy
             nx += dx
             # break 조건들
@@ -161,15 +147,16 @@ def count_dead_tree(y, x, dead_coord) :
             # 나무 없는 경우
             elif mmap[ny][nx] == 0 :
                 # 제초제 남겨두고 break
-                dead_coord.append([ny, nx, C])
+                add_dead_coord.append([ny, nx, C])
                 break
             # 계속 진행
             result += mmap[ny][nx]
             removed_tree_coord.append([ny, nx])
-            dead_coord.append([ny, nx, C])
+            add_dead_coord.append([ny, nx, C])
 
-    return result, removed_tree_coord, dead_coord
+    return result, removed_tree_coord, dead_coord + add_dead_coord
 
+# @measure_time
 def pass_year_dead_medicine(dead_coord) :
     new_dead_coord = []
     for (y, x, c) in dead_coord :
@@ -177,56 +164,17 @@ def pass_year_dead_medicine(dead_coord) :
             new_dead_coord.append([y, x, c-1])
     return new_dead_coord
 
-# def bg_color(word, ci) : return f"\033[04{ci%1+1}m{word}\033[040m"
-def bg_color(word, ci) : return f"\033[041m{word}\033[040m"
-def print_mmap(mmap, color_coord=[]) :
-    for y in range(N) :
-        for x in range(N) :
-            margin = " " * (3 - len(str(mmap[y][x])))
-            tmp = f"{margin}{mmap[y][x]}"
-            for i, coor in enumerate(color_coord) :
-                if [y, x] == coor :
-                    tmp = bg_color(f"{margin}{mmap[y][x]}", i+1)
-                    break
-            print(tmp, end=" ")
-        print()
 
 result = 0
 dead_coord = []
 
-len_tree_coord2 = 0
 tree_coords = get_tree_coord()
- 
-for year in range(M) :
-    # len_tree_coord1 = len(tree_coords)
-    # if len_tree_coord1 != len_tree_coord2 :
-    #     print(f"LENGTH DIFF {len_tree_coord1}, {len_tree_coord2}")
-    
-    # print(f"\n\n>>> YEAR {year}")
-    if DBG : 
-        print(f"\n\n>>> YEAR {year}")
-        print("BEFORE GROW UP TREES")
-        print_mmap(mmap)
-    grow_up_trees(tree_coords)
-    
-    if DBG : 
-        print("AFTER GROW UP TREES\nBEFOR MAKE TREES")
-        print_mmap(mmap)
-    if year == 41 :
-        tree_coords = make_trees(tree_coords)
-    else :
-        tree_coords = make_trees(tree_coords)
 
-    if DBG : 
-        print("AFTER MAKE TREES\nBEFORE PUT MEDICINE")
-        print_mmap(mmap)
-        print(dead_coord)
+for year in range(M) :
+    grow_up_trees(tree_coords)
+    tree_coords = make_trees(tree_coords)
     dead_coord = pass_year_dead_medicine(dead_coord)
     num_dead_tree, tree_coords, dead_coord = put_dead_medicine(tree_coords, dead_coord)
-    if DBG :
-        print("AFTER PUT MEDICINE")
-        print(f"!!! {num_dead_tree} DEAD TREE")
-        print_mmap(mmap)
     result += num_dead_tree
     len_tree_coord2 = len(tree_coords)
 
