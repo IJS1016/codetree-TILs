@@ -86,6 +86,7 @@ def move_runner() :
         print(len(movable_runners), movable_runners)
 
     # 이동 규칙
+    # new_runner_dict 보면...
     new_runner_dict = {}
     for (mrx, mry) in movable_runners:
         new_runner_dict[f"{mrx}.{mry}"] = []
@@ -105,8 +106,10 @@ def move_runner() :
                 if [nx, ny] == [fx, fy] :
                     new_runner_dict[dn].append(mrd)
                 #   칸 술래 X => 움직 O, 나무 무관
-                else :
+                elif [nx, ny] in movable_runners :
                     new_runner_dict[ndn].append(mrd)
+                else :
+                    runner_dict[ndn].append(mrd)
 
             # 격자 벗어나는 경우
             else :
@@ -119,8 +122,10 @@ def move_runner() :
                 if [nx, ny] == [fx, fy] :
                     new_runner_dict[dn].append(mrd)
                 #   칸 술래 X => 움직 O, 나무 무관
-                else :
+                elif [nx, ny] in movable_runners:
                     new_runner_dict[ndn].append(mrd)
+                else:
+                    runner_dict[ndn].append(mrd)
 
     for (mrx, mry) in movable_runners:
         dn = f"{mrx}.{mry}"
@@ -153,7 +158,7 @@ def move_finder() :
 
     # 끝까지 오면 거꾸로 중심으로 이동(시계방향)
     elif opt == 1:
-        if not check_in_range(fx+dx, fy+dy) and visited[fx+dx][fy+dy] :
+        if not check_in_range(fx+dx, fy+dy) or visited[fx+dx][fy+dy] :
             fd = (fd + 3) % 4
         if [fx, fy] == [N//2, N//2] :
             fd = 0 # 상으로 설정
@@ -171,7 +176,7 @@ def find_runner() :
     for i in range(3) :
         nx, ny = fx + dx * i, fy + dy * i
         # 나무 존재 칸은 도망자가 보이지 않음(나무 존재 칸만!)
-        if not trees_mmap[nx][ny] :
+        if check_in_range(nx, ny) and not trees_mmap[nx][ny] :
             catch_num += runners_mmap[nx][ny]
             #    도망자는 사라짐
             runners_mmap[nx][ny] = 0
