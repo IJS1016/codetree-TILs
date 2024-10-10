@@ -31,8 +31,8 @@ mon_dict = init_mon_dict()
 
 # 시계 반대 방향이면, +1 씩 이동하면 됨
 mon_drcts = [[-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1]]
-# 상하좌우 우선순위
-pac_drcts = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+# 상좌하우 우선순위
+pac_drcts = [[-1, 0], [0, -1], [1, 0], [0, 1]]
 
 for _ in range(M) :
     r, c, d = map(int, input().split())
@@ -54,15 +54,15 @@ def move_monster(t) :
     for r in range(N):
         for c in range(N):
             for mdi in mon_dict[f"{r}.{c}"] :
-                #    움직이려는 칸에 몬스터 시체, 팩맨 있거나 격자 벗어나는 경우 반시계 방향으로 45도 이동, 가능할 때까지 회전
                 flag = False
                 #    8 방향 모두 확인, 움직일 수 없으면 이동 X
                 for tdi in range(8) :
                     dr, dc = mon_drcts[(mdi+tdi) % 8]
                     nr, nc = r+dr, c+dc
+                    # 움직이려는 칸에 몬스터 시체, 팩맨 있거나 격자 벗어나는 경우 반시계 방향으로 45도 이동, 가능할 때까지 회전
                     if check_in_range(nr, nc) and [pr, pc] != [nr, nc] and dead_mmap[nr][nc] < t :
                         #    기존 방향도 바뀌게 됨
-                        new_mon_dict[f"{nr}.{nc}"].append(mdi+tdi)
+                        new_mon_dict[f"{nr}.{nc}"].append((mdi+tdi) % 8)
                         flag = True
                         break
                 if not flag :
@@ -72,14 +72,11 @@ def move_monster(t) :
 
 def get_move_log(r, c, mn, log, mon_dict) :
     # 재귀함수로 list 뱉어내기
-    # 만약 방문한 곳도 들린다고 하면, mmap을 계속 갱신해줘야할텐데?
-    # visited로 밀고나가는게 나을수도? => 그럼 상하상 이런 경우 틀림, visited 무시해줘야함
-    # 그냥 먹은 정보 제외하고 copy하는 식으로
     # sort 후 맨 앞에 것으로 몬스터 먹기
     global move_infos
     for i, (dr, dc) in enumerate(pac_drcts) :
         nr, nc = r+dr, c+dc
-        # range 초과, 방문하지 않았는지 확인
+        # range 초과 확인
         if check_in_range(nr, nc) :
             # 이동 후,
             #   몬스터 먹은 개수 더하고, 상하좌우 track log 저장
@@ -88,7 +85,6 @@ def get_move_log(r, c, mn, log, mon_dict) :
             new_log = copy.deepcopy(log)
             new_log.append(i)
 
-            #   visited True 변경해 넘겨줘야함 => 넘기려면 copy 해야되자나..
             new_mon_dict = copy.deepcopy(mon_dict)
             new_mon_dict[f"{nr}.{nc}"] = []
 
@@ -140,6 +136,12 @@ def print_deadmap() :
                 print(dead_mmap[r][c], end=" ")
         print()
 
+def print_drct() :
+    for r in range(N):
+        for c in range(N):
+            if len(mon_dict[f"{r}.{c}"]) :
+                print(f"{r}.{c} : {mon_dict[f'{r}.{c}']}")
+
 ####################################################################################
 # 턴
 for t in range(1, T+1) :
@@ -147,6 +149,7 @@ for t in range(1, T+1) :
         print(f"ROUND {t}")
         print("BEFORE MOVE MONSTER")
         print_monster()
+        print_drct()
     # 1. 몬스터 복제 시도
     #    현재의 위치에서 자신과 같은 방향을 가진 몬스터를 복제
     #    알로 부화되지 않은 상태로 움직 X, 나중에 턴 종료할 때 돌면서 추가해주면 됨
@@ -157,13 +160,12 @@ for t in range(1, T+1) :
     if DBG:
         print("AFTER MOVE MONSTER")
         print_monster()
+        print_drct()
 
     # 3. 팩맨 이동
     move_infos = []
     get_move_log(pr, pc, 0, [], mon_dict)
-    # print(move_infos)
     move_infos.sort(key=lambda x:(-x[0], x[1][0], x[1][1], x[1][2]))
-    # print(move_infos)
     move_packman(move_infos[0], t)
     if DBG:
         print(">> DEADMAP")
@@ -188,7 +190,7 @@ for t in range(1, T+1) :
     if DBG :
         print(f"AFTER MAKE EGG")
         print_monster()
-
+        print_drct()
 
 result = 0
 for r in range(N):
