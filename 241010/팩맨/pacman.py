@@ -1,5 +1,6 @@
 # https://www.codetree.ai/training-field/frequent-problems/problems/pacman/description?page=2&pageSize=20
 # 10.10 17:23
+# 시간 초과...팩맨 개수... 줄이면 됨
 # 팩맨
 # import sys
 # sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
@@ -17,15 +18,8 @@ def init_mon_dict() :
     mon_dict = {}
     for i in range(N) :
         for j in range(N) :
-            mon_dict[f"{i}.{j}"] = []
+            mon_dict[f"{i}.{j}"] = [0, 0, 0, 0, 0, 0, 0, 0] # 몬스터 개수를 count
     return mon_dict
-
-def init_mon_mmap(mon_dict) :
-    mon_mmap = [[0 for _ in range(N)] for _ in range(N)]
-    for i in range(N):
-        for j in range(N):
-            mon_mmap[i][j] = len(mon_dict[f"{i}.{j}"])
-    return mon_mmap
 
 mon_dict = init_mon_dict()
 
@@ -36,10 +30,9 @@ pac_drcts = [[-1, 0], [0, -1], [1, 0], [0, 1]]
 
 for _ in range(M) :
     r, c, d = map(int, input().split())
-    mon_dict[f"{r-1}.{c-1}"].append(d-1)
+    mon_dict[f"{r-1}.{c-1}"][d-1] += 1
 
 # mon mmap 초기화(몬스터 복제할 때 사용)
-mon_mmap = init_mon_mmap(mon_dict)
 dead_mmap = [[0 for _ in range(N)] for _ in range(N)]
 ###################################################################################
 
@@ -53,7 +46,7 @@ def move_monster(t) :
     #    가진 방향대로 한칸 이동
     for r in range(N):
         for c in range(N):
-            for mdi in mon_dict[f"{r}.{c}"] :
+            for mdi, nm in enumerate(mon_dict[f"{r}.{c}"]) :
                 flag = False
                 #    8 방향 모두 확인, 움직일 수 없으면 이동 X
                 for tdi in range(8) :
@@ -62,11 +55,11 @@ def move_monster(t) :
                     # 움직이려는 칸에 몬스터 시체, 팩맨 있거나 격자 벗어나는 경우 반시계 방향으로 45도 이동, 가능할 때까지 회전
                     if check_in_range(nr, nc) and [pr, pc] != [nr, nc] and dead_mmap[nr][nc] < t :
                         #    기존 방향도 바뀌게 됨
-                        new_mon_dict[f"{nr}.{nc}"].append((mdi+tdi) % 8)
+                        new_mon_dict[f"{nr}.{nc}"][(mdi+tdi) % 8] += nm
                         flag = True
                         break
                 if not flag :
-                    new_mon_dict[f"{r}.{c}"].append(mdi)
+                    new_mon_dict[f"{r}.{c}"][mdi] += nm
 
     return new_mon_dict
 
@@ -80,13 +73,13 @@ def get_move_log(r, c, mn, log, mon_dict) :
         if check_in_range(nr, nc) :
             # 이동 후,
             #   몬스터 먹은 개수 더하고, 상하좌우 track log 저장
-            nmn = mn + len(mon_dict[f"{nr}.{nc}"])
+            nmn = mn + sum(mon_dict[f"{nr}.{nc}"])
 
             new_log = copy.deepcopy(log)
             new_log.append(i)
 
             new_mon_dict = copy.deepcopy(mon_dict)
-            new_mon_dict[f"{nr}.{nc}"] = []
+            new_mon_dict[f"{nr}.{nc}"] = [0, 0, 0, 0, 0, 0, 0, 0]
 
             if len(new_log) == 3:
                 move_infos.append([nmn, new_log])
@@ -108,7 +101,7 @@ def move_packman(move_info, t) :
         pc += dc
         if len(mon_dict[f"{pr}.{pc}"]) :
             dead_mmap[pr][pc] = t+2
-            mon_dict[f"{pr}.{pc}"] = []
+            mon_dict[f"{pr}.{pc}"] = [0, 0, 0, 0, 0, 0, 0, 0]
 
 ####################################################################################
 
@@ -120,11 +113,11 @@ def print_monster() :
     for r in range(N):
         for c in range(N):
             if [pr, pc] == [r, c] :
-                print(by(len(mon_dict[f"{r}.{c}"])), end=" ")
+                print(by(sum(mon_dict[f"{r}.{c}"])), end=" ")
             elif dead_mmap[r][c] >= t:
-                print(br(len(mon_dict[f"{r}.{c}"])), end=" ")
+                print(br(sum(mon_dict[f"{r}.{c}"])), end=" ")
             else :
-                print(len(mon_dict[f"{r}.{c}"]), end=" ")
+                print(sum(mon_dict[f"{r}.{c}"]), end=" ")
         print()
 
 def print_deadmap() :
@@ -139,7 +132,7 @@ def print_deadmap() :
 def print_drct() :
     for r in range(N):
         for c in range(N):
-            if len(mon_dict[f"{r}.{c}"]) :
+            if sum(mon_dict[f"{r}.{c}"]) :
                 print(f"{r}.{c} : {mon_dict[f'{r}.{c}']}")
 
 ####################################################################################
@@ -185,7 +178,8 @@ for t in range(1, T+1) :
     #    알 형태인 몬스터 부화
     for r in range(N):
         for c in range(N):
-            mon_dict[f"{r}.{c}"].extend(egg_dict[f"{r}.{c}"])
+            for i in range(8) :
+                mon_dict[f"{r}.{c}"][i] += egg_dict[f"{r}.{c}"][i]
 
     if DBG :
         print(f"AFTER MAKE EGG")
@@ -195,6 +189,6 @@ for t in range(1, T+1) :
 result = 0
 for r in range(N):
     for c in range(N):
-        result += len(mon_dict[f"{r}.{c}"])
+        result += sum(mon_dict[f"{r}.{c}"])
 # print_monster()
 print(result)
