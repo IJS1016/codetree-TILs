@@ -2,6 +2,11 @@
 # 10.10 17:23
 # 시간 초과...팩맨 개수... 줄이면 됨
 # 팩맨
+# 10.22:34
+# 포기... 내일 퇴근하고 보기
+# 못해먹겠다
+
+# 처음 틀린 이유는 우선순위가 잘못되서... 상하좌우라고 생각해서(항상 더블체크하기)
 # import sys
 # sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
 
@@ -99,7 +104,7 @@ def move_packman(move_info, t) :
         dr, dc = pac_drcts[di]
         pr += dr
         pc += dc
-        if len(mon_dict[f"{pr}.{pc}"]) :
+        if sum(mon_dict[f"{pr}.{pc}"]) :
             dead_mmap[pr][pc] = t+2
             mon_dict[f"{pr}.{pc}"] = [0, 0, 0, 0, 0, 0, 0, 0]
 
