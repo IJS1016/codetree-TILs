@@ -6,6 +6,7 @@
 
 # INPUTS ###########################################################################
 import copy
+DBG = False
 
 N = 4
 M, T = map(int, input().split())
@@ -69,16 +70,17 @@ def move_monster(t) :
 
     return new_mon_dict
 
-def get_move_log(r, c, mn, log, visited) :
+def get_move_log(r, c, mn, log, mon_dict) :
     # 재귀함수로 list 뱉어내기
     # 만약 방문한 곳도 들린다고 하면, mmap을 계속 갱신해줘야할텐데?
-    # visited로 밀고나가는게 나을수도?
+    # visited로 밀고나가는게 나을수도? => 그럼 상하상 이런 경우 틀림, visited 무시해줘야함
+    # 그냥 먹은 정보 제외하고 copy하는 식으로
     # sort 후 맨 앞에 것으로 몬스터 먹기
     global move_infos
     for i, (dr, dc) in enumerate(pac_drcts) :
         nr, nc = r+dr, c+dc
         # range 초과, 방문하지 않았는지 확인
-        if check_in_range(nr, nc) and not visited[nr][nc] :
+        if check_in_range(nr, nc) :
             # 이동 후,
             #   몬스터 먹은 개수 더하고, 상하좌우 track log 저장
             nmn = mn + len(mon_dict[f"{nr}.{nc}"])
@@ -87,14 +89,14 @@ def get_move_log(r, c, mn, log, visited) :
             new_log.append(i)
 
             #   visited True 변경해 넘겨줘야함 => 넘기려면 copy 해야되자나..
-            new_visited = copy.deepcopy(visited)
-            new_visited[nr][nc] = True
+            new_mon_dict = copy.deepcopy(mon_dict)
+            new_mon_dict[f"{nr}.{nc}"] = []
 
             if len(new_log) == 3:
                 move_infos.append([nmn, new_log])
             # 3번 이동 완료 시에만 global list에 더해주기
             else :
-                get_move_log(nr, nc, nmn, new_log, new_visited)
+                get_move_log(nr, nc, nmn, new_log, new_mon_dict)
 
 def move_packman(move_info, t) :
     global pr, pc
@@ -108,23 +110,43 @@ def move_packman(move_info, t) :
         dr, dc = pac_drcts[di]
         pr += dr
         pc += dc
-        dead_mmap[dr][dc] = t+2
-        mon_dict[f"{pr}.{pc}"] = []
+        if len(mon_dict[f"{pr}.{pc}"]) :
+            dead_mmap[pr][pc] = t+2
+            mon_dict[f"{pr}.{pc}"] = []
 
 ####################################################################################
 
 ####################################################################################
 # DBG
+def by(s) : return f"\033[043m{s}\033[000m" # 기절
+def br(s) : return f"\033[041m{s}\033[000m" # 기절
 def print_monster() :
     for r in range(N):
         for c in range(N):
-            print(len(mon_dict[f"{r}.{c}"]), end=" ")
+            if [pr, pc] == [r, c] :
+                print(by(len(mon_dict[f"{r}.{c}"])), end=" ")
+            elif dead_mmap[r][c] >= t:
+                print(br(len(mon_dict[f"{r}.{c}"])), end=" ")
+            else :
+                print(len(mon_dict[f"{r}.{c}"]), end=" ")
+        print()
+
+def print_deadmap() :
+    for r in range(N):
+        for c in range(N):
+            if dead_mmap[r][c] >= t:
+                print(br(dead_mmap[r][c]), end=" ")
+            else :
+                print(dead_mmap[r][c], end=" ")
         print()
 
 ####################################################################################
-
 # 턴
 for t in range(1, T+1) :
+    if DBG:
+        print(f"ROUND {t}")
+        print("BEFORE MOVE MONSTER")
+        print_monster()
     # 1. 몬스터 복제 시도
     #    현재의 위치에서 자신과 같은 방향을 가진 몬스터를 복제
     #    알로 부화되지 않은 상태로 움직 X, 나중에 턴 종료할 때 돌면서 추가해주면 됨
@@ -132,15 +154,26 @@ for t in range(1, T+1) :
 
     # 2. 몬스터 이동
     mon_dict = move_monster(t)
+    if DBG:
+        print("AFTER MOVE MONSTER")
+        print_monster()
 
     # 3. 팩맨 이동
     move_infos = []
-    visited = [[False for _ in range(N)] for _ in range(N)]
-    get_move_log(pr, pc, 0, [], visited)
+    get_move_log(pr, pc, 0, [], mon_dict)
     # print(move_infos)
     move_infos.sort(key=lambda x:(-x[0], x[1][0], x[1][1], x[1][2]))
     # print(move_infos)
     move_packman(move_infos[0], t)
+    if DBG:
+        print(">> DEADMAP")
+        print_deadmap()
+
+        print("AFTER MOVE PACKMAN")
+        print(move_infos[0])
+        print_monster()
+
+
     # 4. 몬스터 시체 소멸
     #    2턴 동안 몬스터 시체 유지
     #    시체 생긴 후 시체 소멸되기 전까지 2턴을 필요
@@ -151,6 +184,11 @@ for t in range(1, T+1) :
     for r in range(N):
         for c in range(N):
             mon_dict[f"{r}.{c}"].extend(egg_dict[f"{r}.{c}"])
+
+    if DBG :
+        print(f"AFTER MAKE EGG")
+        print_monster()
+
 
 result = 0
 for r in range(N):
