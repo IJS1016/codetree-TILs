@@ -1,5 +1,5 @@
 import copy
-# import sys
+import sys
 from collections import deque
 # sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
 
@@ -41,7 +41,7 @@ colors = [br, bg, by, bb]
 def print_wall_map() :
     pass
 
-def print_wind_map(mmap, ax=-1, ay=-1, d=0) :
+def print_wind_map_with_wall(mmap, ax=-1, ay=-1, d=0) :
     for tx, line in enumerate(mmap):
         wall_str = ""
         wind_str = ""
@@ -61,6 +61,13 @@ def print_wind_map(mmap, ax=-1, ay=-1, d=0) :
                 else :
                     wind_str += f"{v} "
         print(wall_str)
+        print(wind_str)
+
+def print_wind_map(mmap) :
+    for tx, line in enumerate(mmap):
+        wind_str = ""
+        for ty, v in enumerate(line):
+                wind_str += f"{v} "
         print(wind_str)
 
 ########################################################
@@ -136,7 +143,7 @@ def run_airconditioner(x, y, d) :
                 wind_map[tx][ty] = score-1
                 # if DBG :
                 #     print(f"!!! ({tx}, {ty}) {score-1}")
-                #     print_wind_map(wind_map)
+                #     print_wind_map_with_wall(wind_map)
                 #     print()
 
     return wind_map
@@ -158,17 +165,18 @@ def get_total_wind_map() :
             for ty in range(N):
                 total_wind_map[tx][ty] += wind_map[tx][ty]
         if DBG:
-            print_wind_map(wind_map, x, y, d)
+            print_wind_map_with_wall(wind_map, x, y, d)
     return total_wind_map
 
+# 단 벽을 두고 있는 칸끼리는 일어나지 않음
 def mix_cool_air(mmap) :
     result_mmap = copy.deepcopy(mmap)
 
     for tx, line in enumerate(mmap) :
         for ty, air in enumerate(line) :
-            for dx, dy in directions :
+            for d, (dx, dy) in enumerate(directions) :
                 nx, ny = tx+dx, ty+dy
-                if check_in_range(nx, ny) :
+                if check_in_range(nx, ny) and not check_block(tx, ty, d):
                     tair = mmap[nx][ny]
                     if air > tair :
                         move_air = int(((air - tair) / 4))
@@ -205,6 +213,9 @@ def check_end_condition(mmap) :
 # 에어컨 위치 찾기 - 이걸 저장해서 턴 지날 때 마다 나중에 계속 더해주기
 air_map = [[0 for _ in range(N)] for _ in range(N)]
 total_wind_map = get_total_wind_map()
+if DBG:
+    print(">> 1. ADD TOTAL MAP")
+    print_wind_map(total_wind_map)
 
 time = 1
 end_flag = False
@@ -212,11 +223,7 @@ while (time <= 100) :
     # 순서대로
     # 1. 에어컨 냉방
     # total_wind_map 더해주기
-    add_wind_map(air_map, total_wind_map)
-
-    if DBG :
-        print(">> 1. ADD TOTAL MAP")
-        print_wind_map(air_map)
+    air_map = add_wind_map(air_map, total_wind_map)
 
     # 시원한 공기들 섞이기
     air_map = mix_cool_air(air_map)
