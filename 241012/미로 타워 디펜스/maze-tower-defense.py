@@ -216,8 +216,6 @@ for R, attack in enumerate(attack_list) :
     flag = True
     while flag :
         m_list, flag = remove_monster(m_list)
-        print(m_list)
-        print(flag)
 
     if DBG:
         print(f"3. AFTER REMOVE")
