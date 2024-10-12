@@ -223,9 +223,5 @@ for attack in attack_list :
     if DBG:
         print_mmap(mmap, N//2, N//2)
 
-    print(score)
-# list에서 map으로 변경하도록 하는 함수 생성
-
-# 한라운드
-# 삭제되는 몬스터만큼 점수가 추가(몬스터 번호*개수)
+print(score)
 #####################################################################
