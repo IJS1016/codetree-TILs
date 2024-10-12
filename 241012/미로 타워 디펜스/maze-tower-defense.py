@@ -1,7 +1,8 @@
 # 16:30 풀이 시작
 # NxN 나선형 미로, 1,2,3번 몬스터 침략
 # 탑에서 몬스터 제거
-# import sys
+import sys
+
 # sys.stdin = open('C:\\Users\\정선\\Desktop\\ps_study\\정선\\python\\codetree\\example.txt', "r")
 
 # INPUT #############################################################
@@ -56,10 +57,7 @@ def list_to_map(m_list) :
             di = ndi
 
         dx, dy = directions[di]
-        nx += dx
-        ny += dy
-
-
+        nx, ny = nx + dx, ny + dy
 
     return mmap
 
@@ -95,10 +93,12 @@ def map_to_list(mmap, m_size=-1) :
             result_list.append(mmap[nx][ny])
         dx, dy = directions[di]
         nx, ny = nx+dx, ny+dy
-        if not check_in_range(nx, ny) or (m_size == -1 and mmap[nx][ny] == 0) :
+        if not check_in_range(nx, ny) :
             break
-        if m_size > 0 and len(result_list) >= m_size :
-            break
+        # if (m_size == -1 and mmap[nx][ny] == 0) :
+        #     break
+        # if m_size > 0 and len(result_list) >= m_size :
+        #     break
         adi = (di + 1) % 4
         adx, ady = directions[adi]
         if check_in_range(nx+adx, ny+ady) and not visited[nx+adx][ny+ady] :
@@ -111,14 +111,17 @@ def attack_monster(ad, asize, mmap) :
 
     nx, ny = N // 2, N // 2
     dx, dy = attack_directions[ad]
+    count = 0
 
     for s in range(1, asize+1) :
         nx, ny = nx + dx, ny + dy
         if check_in_range(nx, ny) :
             score += mmap[nx][ny]
+            if mmap[nx][ny] :
+                count += 1
             mmap[nx][ny] = 0
 
-    return mmap
+    return mmap, count
 
 def remove_monster(m_list) :
     global score
@@ -176,23 +179,24 @@ def make_monster(m_list) :
 
 # MAIN  #############################################################
 m_list = map_to_list(mmap)
-size_m = len(m_list)
+m_size = len(m_list)
 
-for attack in attack_list :
+for R, attack in enumerate(attack_list) :
     # 1. 공격
     # 상하좌우 중 공격칸수만큼 몬스터 공격 가능
     # 비어있는 만큼 빈공간을 채움 => 이걸 어떻게? 개수를 저장해서
     ad, asize = attack
     if DBG:
+        print(f">>> Round {R}")
         print("1. BEFORE ATTACK")
         print_mmap(mmap, N//2, N//2)
         print(m_list)
-    mmap = attack_monster(ad, asize, mmap)
+    mmap, acount = attack_monster(ad, asize, mmap)
     if DBG:
-        print(f"2. AFTER ATTACK {attack_direction_name[ad]}, {asize}")
+        print(f"2. AFTER ATTACK {attack_direction_name[ad]}, {asize}, {acount}")
         print_mmap(mmap, N//2, N//2)
-    m_list = map_to_list(mmap, size_m)
-    size_m -= asize
+    m_list = map_to_list(mmap, m_size)
+    m_size -= acount
 
     # 3. 제거
     # 미로 위치에서 몬스터 종류가 4번 이상 반복 -> 몬스터 삭제
