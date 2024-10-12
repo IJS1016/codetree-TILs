@@ -123,15 +123,22 @@ def attack_monster(ad, asize, mmap) :
 
     return mmap, count
 
+
 def remove_monster(m_list) :
     global score
     flag = False
+
+    m_list.append(0)
 
     bm = m_list[0]
     result_m_list = []
     si = 0
     con_n = 1
 
+    # 엣지 케이스 대충하지말고, 첨에 생각 잘해서 하기
+    # 항상항상 대충 생각해서 나중에 고쳐야지 이러면 큰일 남
+    # 처음에 제대로 하기
+    # 첫, 끝 처리가 어려운 경우 append로 넣어주는 것도 생각할 수 있음
     for i, m in enumerate(m_list) :
         if i == 0 :
             continue
@@ -147,7 +154,6 @@ def remove_monster(m_list) :
             si = i
             bm = m
             con_n = 1
-    result_m_list.extend(m_list[si:])
     return result_m_list, flag
 
 def make_monster(m_list) :
@@ -208,9 +214,10 @@ for R, attack in enumerate(attack_list) :
         print(f"3. BEFORE REMOVE")
         print(m_list)
     flag = True
-
     while flag :
         m_list, flag = remove_monster(m_list)
+        print(m_list)
+        print(flag)
 
     if DBG:
         print(f"3. AFTER REMOVE")
