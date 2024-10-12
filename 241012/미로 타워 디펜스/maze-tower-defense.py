@@ -95,10 +95,10 @@ def map_to_list(mmap, m_size=-1) :
         nx, ny = nx+dx, ny+dy
         if not check_in_range(nx, ny) :
             break
-        # if (m_size == -1 and mmap[nx][ny] == 0) :
-        #     break
-        # if m_size > 0 and len(result_list) >= m_size :
-        #     break
+        if (m_size == -1 and mmap[nx][ny] == 0) :
+            break
+        if m_size > 0 and len(result_list) >= m_size :
+            break
         adi = (di + 1) % 4
         adx, ady = directions[adi]
         if check_in_range(nx+adx, ny+ady) and not visited[nx+adx][ny+ady] :
@@ -185,7 +185,6 @@ def make_monster(m_list) :
 
 # MAIN  #############################################################
 m_list = map_to_list(mmap)
-m_size = len(m_list)
 
 for R, attack in enumerate(attack_list) :
     # 1. 공격
@@ -197,6 +196,7 @@ for R, attack in enumerate(attack_list) :
         print("1. BEFORE ATTACK")
         print_mmap(mmap, N//2, N//2)
         print(m_list)
+    m_size = len(m_list)
     mmap, acount = attack_monster(ad, asize, mmap)
     if DBG:
         print(f"2. AFTER ATTACK {attack_direction_name[ad]}, {asize}, {acount}")
